@@ -1,0 +1,29 @@
+# Конфиденциальные данные
+config.py
+# Но разрешаем шаблон (config.py.example можно коммитить)
+!config.py.example
+
+# База данных
+*.db
+*.db-journal
+
+# Резервные копии
+*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+

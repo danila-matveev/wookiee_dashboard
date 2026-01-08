@@ -1,0 +1,17 @@
+# Файл с настройками подключения к Bitrix24
+# 
+# ИНСТРУКЦИЯ:
+# 1. Скопируйте этот файл: cp config.py.example config.py
+# 2. Заполните реальными данными из вашего Bitrix24
+# 3. НЕ коммитьте config.py в Git (он уже в .gitignore)
+
+# Ваш адрес Bitrix24 (например: "mycompany.bitrix24.ru" или "mycompany.bitrix24.com")
+BITRIX24_DOMAIN = "your-domain.bitrix24.ru"
+
+# Ваш вебхук URL (полный адрес, например: "https://mycompany.bitrix24.ru/rest/1/abc123def456/")
+# Получить вебхук можно в Bitrix24: Приложения → Другое → Вебхук для вызова rest api
+BITRIX24_WEBHOOK = "https://your-domain.bitrix24.ru/rest/1/your_webhook_token_here/"
+
+# Используете ли вы вебхук (True) или Bearer токен (False)
+USE_WEBHOOK = True
+
