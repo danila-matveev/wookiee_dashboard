@@ -145,9 +145,29 @@ curl -X POST "https://api.telegram.org/botYOUR_BOT_TOKEN/deleteWebhook"
 
 ### 3. Проверка работы
 
-1. Проверьте health endpoint: `https://YOUR_VERCEL_URL/health` (должен вернуть `{"status":"ok"}`)
-2. Отправьте боту команду `/start your@email.com` в Telegram
-3. Проверьте логи в Vercel Dashboard → Deployments → Functions → View Function Logs
+**📖 Подробная инструкция:** См. `scripts/check_vercel_deployment.md`
+
+**Быстрая проверка:**
+
+1. **Проверьте health endpoint:**
+   ```bash
+   curl https://YOUR_VERCEL_URL/health
+   ```
+   Должен вернуть: `{"status":"ok"}`
+
+2. **Настройте webhook (автоматически):**
+   ```bash
+   ./scripts/setup_telegram_webhook.sh
+   ```
+   Или вручную:
+   ```bash
+   curl -X POST "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook" \
+     -d "url=https://YOUR_VERCEL_URL/webhook/telegram"
+   ```
+
+3. **Отправьте боту команду `/start your@email.com` в Telegram**
+
+4. **Проверьте логи в Vercel Dashboard → Deployments → Functions → View Function Logs**
 
 ### 4. Cron задачи
 
