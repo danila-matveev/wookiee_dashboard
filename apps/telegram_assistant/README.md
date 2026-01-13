@@ -111,11 +111,57 @@ CREATE TABLE assistant.notification_outbox (
 5) Добавить cron endpoint `morning_digest` с `CRON_SECRET`.
 
 ## Деплой на Vercel (Hobby)
-- Переменные окружения (Project → Settings → Environment Variables):
-  - `TELEGRAM_BOT_TOKEN`, `BITRIX24_WEBHOOK`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, `DEFAULT_TIMEZONE=Asia/Makassar`, `OPENROUTER_API_KEY`, `APP_BASE_URL=https://wookiee-dashboard.vercel.app`
-- Webhook: `curl -X POST "https://api.telegram.org/bot$TOKEN/setWebhook" -d "url=https://wookiee-dashboard.vercel.app/webhook/telegram"`
-- Cron: через GitHub Actions (см. `.github/workflows/morning_digest.yml`, `.github/workflows/evening_digest.yml`), секреты в репо: `CRON_SECRET`, `APP_BASE_URL`.
-- `vercel.json` роутит `/health`, `/webhook/telegram`, `/jobs/*` в `api/index.py`, который поднимает FastAPI `app`.
+
+### 1. Настройка переменных окружения
+
+В Vercel Dashboard → Project → Settings → Environment Variables добавьте:
+- `TELEGRAM_BOT_TOKEN` — токен бота от @BotFather
+- `BITRIX24_WEBHOOK` — полный URL incoming webhook из Bitrix24
+- `SUPABASE_URL` — URL проекта Supabase
+- `SUPABASE_SERVICE_ROLE_KEY` — service-role ключ Supabase
+- `CRON_SECRET` — случайный секрет для защиты cron endpoints
+- `DEFAULT_TIMEZONE` — `Europe/Moscow` (или другая)
+- `APP_BASE_URL` — публичный URL вашего Vercel проекта (например, `https://wookiee-dashboard.vercel.app`)
+
+### 2. Настройка Telegram Webhook
+
+После деплоя на Vercel настройте webhook в Telegram:
+
+```bash
+# Замените YOUR_BOT_TOKEN и YOUR_VERCEL_URL на реальные значения
+curl -X POST "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook" \
+  -d "url=https://YOUR_VERCEL_URL/webhook/telegram"
+```
+
+Проверить статус webhook:
+```bash
+curl "https://api.telegram.org/botYOUR_BOT_TOKEN/getWebhookInfo"
+```
+
+Удалить webhook (если нужно):
+```bash
+curl -X POST "https://api.telegram.org/botYOUR_BOT_TOKEN/deleteWebhook"
+```
+
+### 3. Проверка работы
+
+1. Проверьте health endpoint: `https://YOUR_VERCEL_URL/health` (должен вернуть `{"status":"ok"}`)
+2. Отправьте боту команду `/start your@email.com` в Telegram
+3. Проверьте логи в Vercel Dashboard → Deployments → Functions → View Function Logs
+
+### 4. Cron задачи
+
+Cron задачи настраиваются через GitHub Actions (см. `.github/workflows/morning_digest.yml`, `.github/workflows/evening_digest.yml`), секреты в репо: `CRON_SECRET`, `APP_BASE_URL`.
+
+### 5. Структура роутинга
+
+`vercel.json` роутит:
+- `/health` → `api/index.py`
+- `/webhook/telegram` → `api/index.py`
+- `/jobs/morning_digest` → `api/index.py`
+- `/jobs/evening_digest` → `api/index.py`
+
+Все запросы обрабатываются через FastAPI `app` из `apps/telegram_assistant/main.py`.
 
 ## Команды бота (MVP)
 - `/start <email>` — отправляет OTP в Bitrix24 (`im.notify`), ждёт `/code <otp>`.

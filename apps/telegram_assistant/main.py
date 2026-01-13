@@ -36,6 +36,20 @@ register_help(dp)
 register_today(dp, settings.default_timezone)
 register_code(dp)
 
+
+# Global error handler for aiogram
+@dp.errors()
+async def error_handler(update, exception):
+    logger.error("Unhandled error in dispatcher: %s", exception, exc_info=True)
+    try:
+        if update and update.message:
+            await update.message.answer(
+                "Произошла ошибка при обработке команды. Попробуйте позже или используйте /help."
+            )
+    except Exception:
+        pass  # Ignore errors in error handling
+    return True
+
 app = FastAPI(title="wookiee-ai-assistant")
 
 
@@ -51,10 +65,28 @@ async def health() -> Dict[str, str]:
 
 @app.post("/webhook/telegram")
 async def telegram_webhook(request: Request) -> Dict[str, str]:
-    body = await request.json()
-    update = Update.model_validate(body)
-    await dp.feed_update(bot, update)
-    return {"status": "processed"}
+    body = None
+    try:
+        body = await request.json()
+        logger.info("Received webhook update: %s", body.get("update_id"))
+        update = Update.model_validate(body)
+        await dp.feed_update(bot, update)
+        logger.info("Update processed successfully")
+        return {"status": "processed"}
+    except Exception as e:
+        logger.error("Error processing webhook: %s", e, exc_info=True)
+        # Try to send error message to user if possible
+        try:
+            if body and "message" in body:
+                chat_id = body["message"].get("chat", {}).get("id")
+                if chat_id:
+                    await bot.send_message(
+                        chat_id=chat_id,
+                        text="Произошла ошибка при обработке запроса. Попробуйте позже."
+                    )
+        except Exception:
+            pass  # Ignore errors in error handling
+        return {"status": "error", "detail": str(e)}
 
 
 def verify_cron(secret_header: str | None) -> None:

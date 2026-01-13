@@ -7,5 +7,5 @@ if ROOT not in sys.path:
 
 from apps.telegram_assistant.main import app  # noqa: E402
 
-# Vercel Python builder detects the ASGI app via variable name "app"
+# Vercel Python builder automatically detects ASGI app via variable name "app"
 # Nothing else required here.
