@@ -4,10 +4,10 @@
       "maxDuration": 10
     }
   },
-  "routes": [
-    { "src": "/health", "dest": "/api/index.py" },
-    { "src": "/webhook/telegram", "dest": "/api/index.py" },
-    { "src": "/jobs/morning_digest", "dest": "/api/index.py" },
-    { "src": "/jobs/evening_digest", "dest": "/api/index.py" }
+  "rewrites": [
+    { "source": "/health", "destination": "/api/index.py" },
+    { "source": "/webhook/telegram", "destination": "/api/index.py" },
+    { "source": "/jobs/morning_digest", "destination": "/api/index.py" },
+    { "source": "/jobs/evening_digest", "destination": "/api/index.py" }
   ]
 }
