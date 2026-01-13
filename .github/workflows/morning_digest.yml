@@ -1,0 +1,16 @@
+name: morning_digest
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # 08:00 Asia/Makassar (UTC+8)
+  workflow_dispatch: {}
+
+jobs:
+  call-cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call morning digest endpoint
+        run: |
+          curl -X POST \
+            -H "X-CRON-SECRET: ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_BASE_URL }}/jobs/morning_digest"
