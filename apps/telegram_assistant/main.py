@@ -1,4 +1,7 @@
 import logging
+import json
+import os
+import time
 from typing import Dict, Optional
 
 from aiogram import Bot, Dispatcher
@@ -9,6 +12,26 @@ from fastapi import FastAPI, Header, HTTPException, Request
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger(__name__)
+
+# region agent log
+def _agent_log(hypothesis_id: str, location: str, message: str, data: dict | None = None) -> None:
+    # Debug-mode NDJSON logger (local runs only). Never log secrets.
+    try:
+        payload = {
+            "sessionId": "debug-session",
+            "runId": os.getenv("AGENT_RUN_ID", "pre-fix"),
+            "hypothesisId": hypothesis_id,
+            "location": location,
+            "message": message,
+            "data": data or {},
+            "timestamp": int(time.time() * 1000),
+        }
+        log_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")), ".cursor", "debug.log")
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+# endregion agent log
 
 # Try to import settings and initialize bot
 settings = None
@@ -30,6 +53,18 @@ try:
     from packages.supabase_db import SupabaseClient
     
     settings = _settings
+    _agent_log(
+        "H_env_init",
+        "apps/telegram_assistant/main.py:init",
+        "settings imported",
+        {
+            "hasTelegramToken": bool(getattr(settings, "telegram_bot_token", None)),
+            "hasBitrixWebhook": bool(getattr(settings, "bitrix24_webhook", None)),
+            "hasSupabaseUrl": bool(getattr(settings, "supabase_url", None)),
+            "hasSupabaseServiceKey": bool(getattr(settings, "supabase_service_role_key", None)),
+            "hasCronSecret": bool(getattr(settings, "cron_secret", None)),
+        },
+    )
     
     # Initialize bot and dependencies
     bot = Bot(token=settings.telegram_bot_token, parse_mode=ParseMode.HTML)
@@ -48,8 +83,10 @@ try:
     register_code(dp)
     
     logger.info("Bot initialized successfully")
+    _agent_log("H_env_init", "apps/telegram_assistant/main.py:init", "bot initialized", {"ok": True})
 except Exception as e:
     logger.error("Failed to initialize bot: %s", e, exc_info=True)
+    _agent_log("H_env_init", "apps/telegram_assistant/main.py:init", "bot init failed", {"errorType": type(e).__name__})
     # Bot will be None, but app can still serve health endpoint
 
 
@@ -82,6 +119,7 @@ async def health() -> Dict[str, str]:
         "status": "ok",
         "bot_initialized": bot is not None and dp is not None,
     }
+    _agent_log("H_runtime_requests", "apps/telegram_assistant/main.py:health", "health called", {"botInitialized": status["bot_initialized"]})
     if bot is None or dp is None:
         status["error"] = "Bot not initialized. Check environment variables in Vercel."
         status["required_vars"] = [
@@ -97,18 +135,22 @@ async def health() -> Dict[str, str]:
 async def telegram_webhook(request: Request) -> Dict[str, str]:
     if bot is None or dp is None:
         logger.error("Bot not initialized - check environment variables")
+        _agent_log("H_runtime_requests", "apps/telegram_assistant/main.py:webhook", "webhook rejected (bot not initialized)", {})
         return {"status": "error", "detail": "Bot not initialized. Check environment variables in Vercel."}
     
     body = None
     try:
         body = await request.json()
         logger.info("Received webhook update: %s", body.get("update_id"))
+        _agent_log("H_runtime_requests", "apps/telegram_assistant/main.py:webhook", "webhook received", {"hasUpdateId": "update_id" in body})
         update = Update.model_validate(body)
         await dp.feed_update(bot, update)
         logger.info("Update processed successfully")
+        _agent_log("H_runtime_requests", "apps/telegram_assistant/main.py:webhook", "webhook processed", {"ok": True})
         return {"status": "processed"}
     except Exception as e:
         logger.error("Error processing webhook: %s", e, exc_info=True)
+        _agent_log("H_runtime_requests", "apps/telegram_assistant/main.py:webhook", "webhook error", {"errorType": type(e).__name__})
         # Try to send error message to user if possible
         try:
             if body and "message" in body and bot:
