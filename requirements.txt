@@ -1,0 +1,1 @@
+-r apps/telegram_assistant/requirements.txt

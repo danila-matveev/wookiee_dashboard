@@ -1,0 +1,17 @@
+# Секреты и конфигурация
+.env.local
+.env
+
+# Логи и временные файлы
+*.log
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+
+# Supabase локальные файлы
+supabase/.branches
+supabase/.temp

@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.10",
+      "maxDuration": 10
+    }
+  },
+  "routes": [
+    { "src": "/health", "dest": "/api/index.py" },
+    { "src": "/webhook/telegram", "dest": "/api/index.py" },
+    { "src": "/jobs/morning_digest", "dest": "/api/index.py" },
+    { "src": "/jobs/evening_digest", "dest": "/api/index.py" }
+  ]
+}

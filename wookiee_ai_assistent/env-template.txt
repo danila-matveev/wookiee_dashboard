@@ -1,0 +1,22 @@
+# Telegram Bot
+# Получить через @BotFather в Telegram
+TELEGRAM_BOT_TOKEN=
+
+# Bitrix24 Webhook
+# Полный URL вида https://your-domain.bitrix24.ru/rest/1/your_webhook_token/
+BITRIX24_WEBHOOK=
+
+# Supabase
+# URL проекта из Supabase Dashboard
+SUPABASE_URL=
+# Service Role Key (для Edge Functions - НЕ anon key!)
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Настройки по умолчанию
+DEFAULT_TIMEZONE=Europe/Moscow
+
+# Опционально: секрет для защиты cron endpoints
+CRON_SECRET=
+
+# Опционально: email для уведомлений о ошибках
+ADMIN_EMAIL=
