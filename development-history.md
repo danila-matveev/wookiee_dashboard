@@ -144,3 +144,25 @@ Vercel отклонял конфигурацию Function Runtime ещё на э
 ### Следующие шаги
 - Перезапустить деплой на Vercel и убедиться, что build проходит.
 - После успешного деплоя проверить `/health`, затем webhook и cron-эндпоинты.
+
+## [2026-01-14 19:24] - Анализ проблем с деплоем на Vercel и предложения по решению
+
+### Что сделано
+- Исправлены конфликты зависимостей: понижены `pydantic` (2.6.3 → 2.5.3) и `httpx` (0.26.0 → 0.25.2) для совместимости с `aiogram` и `supabase`.
+- Заменены `routes` на `rewrites` в `vercel.json`.
+- Добавлено подробное логирование в stdout для диагностики рантайм-ошибок.
+- Создан документ `DEBUGGING_SESSION_ANALYSIS.md` с полным анализом всех проблем и попыток решения.
+- Создан документ `SOLUTION_PROPOSAL.md` с предложениями по решению (убрать `functions` из `vercel.json`, альтернативные платформы).
+
+### Зачем
+Диагностика проблем с деплоем на Vercel: проект не работает после деплоя (404/Internal Server Error). Последняя ошибка: `The pattern "api/index.py" defined in functions doesn't match any Serverless Functions inside the api directory.`
+
+### Обновлено
+- [ ] ARCHITECTURE.md roadmap
+- [ ] ADR (если есть)
+- [ ] Тесты (если применимо)
+- [x] Документация (`DEBUGGING_SESSION_ANALYSIS.md`, `SOLUTION_PROPOSAL.md`)
+
+### Следующие шаги
+- Попробовать убрать секцию `functions` из `vercel.json` (Vercel автоматически обнаруживает Python файлы в `api/`).
+- Если не работает — рассмотреть альтернативные платформы (Railway, Render, Fly.io) для Python FastAPI приложений.
