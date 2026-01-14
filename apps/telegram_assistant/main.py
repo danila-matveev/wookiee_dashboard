@@ -115,20 +115,28 @@ async def on_startup() -> None:
 @app.get("/health")
 async def health() -> Dict[str, str]:
     """Health check endpoint that works even if bot is not initialized"""
-    status = {
-        "status": "ok",
-        "bot_initialized": bot is not None and dp is not None,
-    }
-    _agent_log("H_runtime_requests", "apps/telegram_assistant/main.py:health", "health called", {"botInitialized": status["bot_initialized"]})
-    if bot is None or dp is None:
-        status["error"] = "Bot not initialized. Check environment variables in Vercel."
-        status["required_vars"] = [
-            "TELEGRAM_BOT_TOKEN",
-            "BITRIX24_WEBHOOK",
-            "SUPABASE_URL",
-            "SUPABASE_SERVICE_ROLE_KEY",
-        ]
-    return status
+    logger.info("health endpoint: Request received")
+    try:
+        status = {
+            "status": "ok",
+            "bot_initialized": bot is not None and dp is not None,
+        }
+        _agent_log("H_runtime_requests", "apps/telegram_assistant/main.py:health", "health called", {"botInitialized": status["bot_initialized"]})
+        logger.info(f"health endpoint: bot_initialized={status['bot_initialized']}")
+        if bot is None or dp is None:
+            status["error"] = "Bot not initialized. Check environment variables in Vercel."
+            status["required_vars"] = [
+                "TELEGRAM_BOT_TOKEN",
+                "BITRIX24_WEBHOOK",
+                "SUPABASE_URL",
+                "SUPABASE_SERVICE_ROLE_KEY",
+            ]
+            logger.warning("health endpoint: Bot not initialized")
+        logger.info(f"health endpoint: Returning status={status}")
+        return status
+    except Exception as e:
+        logger.error(f"health endpoint: Error: {e}", exc_info=True)
+        raise
 
 
 @app.post("/webhook/telegram")
